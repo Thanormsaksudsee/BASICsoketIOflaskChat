@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Chat App</title>
+</head>
+<body>
+    <h1>Welcome to chat room {{ room }}</h1>
+    <div id="messages"></div>
+    
+    <form id="messages_input_form">
+        <input type="text" id="messages_input" placeholder="Enter your message here">
+        <button type="submit">Send</button>
+    </form>
+    
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js" integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ" crossorigin="anonymous"></script>
+<script>
+    const socket = io.connect('http://localhost:5000');
+
+    socket.on('connect', function() {
+        socket.emit('join_room', {
+            username: '{{ username }}',
+            room: '{{ room }}'
+        });
+    });
+
+    // Add event listener for form submission
+    document.getElementById('messages_input_form').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent form from actually submitting
+
+        const messageInput = document.getElementById('messages_input');
+        const message = messageInput.value;
+
+        // Emit a 'send_message' event to the server
+        socket.emit('send_message', {
+            username: '{{ username }}',
+            room: '{{ room }}',
+            message: message
+        });
+
+        // Clear input field
+        messageInput.value = '';
+    });
+
+    // Add event listener for receiving messages
+    socket.on('receive_message', function(data) {
+        const messagesDiv = document.getElementById('messages');
+        const messageElement = document.createElement('div');
+        messageElement.textContent = `${data.username}: ${data.message}`;
+        messagesDiv.appendChild(messageElement);
+    });
+</script>
+</html>
